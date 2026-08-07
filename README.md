@@ -3,7 +3,7 @@
 Performance test suite built with [k6](https://k6.io/), organized into three scripts of increasing complexity: a baseline load test, a request-grouping test, and a weighted traffic-distribution test. HTML reports are generated automatically via `k6-reporter`.
 
 **Targets differ by script:**
-- `first-k6script.js` hit [test.k6.io](https://test.k6.io/).
+- `first-k6script.js` hit [swaglab](https://www.saucedemo.com).
 - `user-groups.js` and `traffic-distribution.js` hit [test.k6.io](https://test.k6.io/) — k6's own public test site — via a `BASE_URL` environment variable that defaults to `https://test.k6.io` but can be overridden at run time.
 
 ## Project Structure
