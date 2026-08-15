@@ -1,4 +1,4 @@
-# Test Plan — K6 Load Testing Suite
+# Test Plan K6 Load Testing Suite
 
 ## 1. Purpose
 
@@ -7,31 +7,31 @@ This suite validates that the applications under test can sustain a moderate con
 ## 2. Scope
 
 ### In scope
-- HTTP-level load and response-time testing of public, unauthenticated pages
-- Status-code validation (`200 OK`) as the correctness check
+- HTTP level load and response time testing of public, unauthenticated pages
+- Status code validation (`200 OK`) as the correctness check
 - Response-time thresholds under ramping concurrent load
 - Comparing uniform vs. weighted traffic patterns across the same target application
 
 ### Out of scope
-- Authentication / session-based flows (login, cart, checkout) — none of the three scripts currently exercise these
+- Authentication / session based flows (login, cart, checkout)  none of the three scripts currently exercise these
 - Data validation beyond HTTP status (no response body/schema assertions)
-- Stress testing to find breaking points (max VUs here is 20 — this is load testing, not capacity/stress testing)
-- Soak/endurance testing (longest run is ~1m40s total; no multi-hour runs)
-- Browser-level (frontend rendering, JS execution) testing — this is protocol-level (HTTP) testing only
+- Stress testing to find breaking points (max VUs here is 20 this is load testing, not capacity/stress testing)
+- Soak/endurance testing (longest run is ~1m40s total; no multi hour runs)
+- Browser-level (frontend rendering, JS execution) testing this is protocol level (HTTP) testing only
 
 ## 3. Applications & Environments Under Test
 
 | Script | Target | Configurable? |
 |---|---|---|
-| `first-k6script.js` | `https://www.saucedemo.com/` | No — hardcoded |
-| `user-groups.js` | `https://test.k6.io` (default) | Yes — via `BASE_URL` env var |
-| `traffic-distribution.js` | `https://test.k6.io` (default) | Yes — via `BASE_URL` env var |
+| `first-k6script.js` | `https://www.saucedemo.com/` | No hardcoded |
+| `user-groups.js` | `https://test.k6.io` (default) | Yes  via `BASE_URL` env var |
+| `traffic distribution.js` | `https://test.k6.io` (default) | Yes  via `BASE_URL` env var |
 
 **Known inconsistency:** `first-k6script.js` does not yet support `BASE_URL` override. Tracked as a follow-up (see README "Next Steps").
 
 ## 4. Test Scenarios
 
-### 4.1 `first-k6script.js` — Baseline Load Test
+### 4.1 `first-k6script.js`  Baseline Load Test
 **Objective:** Establish a response-time baseline for a single endpoint under ramping load, with no internal breakdown by page or path.
 
 **Steps:**
@@ -39,7 +39,7 @@ This suite validates that the applications under test can sustain a moderate con
 2. Assert `status === 200`
 3. Sleep 1s, repeat for the duration of the run
 
-### 4.2 `user-groups.js` — Grouped Multi-Page Journey
+### 4.2 `user-groups.js` Grouped Multi-Page Journey
 **Objective:** Simulate a user who visits every page in a fixed order, with results broken out per page (via k6 `group()`), to catch a single slow page that a flat aggregate metric would hide.
 
 **Steps (every VU, every iteration):**
@@ -49,8 +49,8 @@ This suite validates that the applications under test can sustain a moderate con
 4. Sleep 1s
 5. Group "Open Blog Page": `GET {BASE_URL}/about.php` → assert `200`
 
-### 4.3 `traffic-distribution.js` — Weighted Traffic Distribution
-**Objective:** Model realistic, non-uniform traffic where the homepage receives more hits than deeper pages, rather than testing every page under identical load.
+### 4.3 `traffic-distribution.js` Weighted Traffic Distribution
+**Objective:** Model realistic, non uniform traffic where the homepage receives more hits than deeper pages, rather than testing every page under identical load.
 
 **Traffic split (per iteration, one page only):**
 | Page | Weight |
@@ -81,14 +81,14 @@ This suite validates that the applications under test can sustain a moderate con
 
 | Metric | Threshold | Meaning if failed |
 |---|---|---|
-| `http_req_duration` (p95) | `< 500ms` | 95th-percentile response time exceeded 500ms — degraded performance under load |
-| `check()` — status 200 | Implicit (checks logged, not a hard threshold) | Any non-200 response is recorded as a failed check but does not by itself fail the k6 run unless combined with a `checks` threshold |
+| `http_req_duration` (p95) | `< 500ms` | 95th-percentile response time exceeded 500ms degraded performance under load |
+| `check()` status 200 | Implicit (checks logged, not a hard threshold) | Any non 200 response is recorded as a failed check but does not by itself fail the k6 run unless combined with a `checks` threshold |
 
 **Note:** currently only `http_req_duration` has a formal threshold. Adding a `checks` threshold (e.g. `checks: ['rate>0.99']`) is recommended so a spike in non-200 responses also produces a non-zero exit code for CI gating — see Section 9.
 
 ## 7. Test Data
 
-No test data / fixtures are required — all three scripts hit static, unauthenticated public pages. No accounts, tokens, or seeded data are used.
+No test data / fixtures are required  all three scripts hit static, unauthenticated public pages. No accounts, tokens, or seeded data are used.
 
 ## 8. Reporting
 
@@ -113,15 +113,15 @@ k6 run -e BASE_URL=https://staging.example.com script/user-groups.js
 k6 run -e BASE_URL=https://staging.example.com script/traffic-distribution.js
 ```
 
-Exit code is non-zero if the `http_req_duration` p95 threshold is breached — suitable for CI gating (see `.github/workflows/` once added).
+Exit code is non zero if the `http_req_duration` p95 threshold is breached suitable for CI gating (see `.github/workflows/` once added).
 
 ## 10. Risks & Limitations
 
-- **No auth coverage** — real user journeys through SauceDemo (login → cart → checkout) are not tested; current coverage is limited to public pages.
+- **No auth coverage** Real user journeys through SauceDemo (login → cart → checkout) are not tested; current coverage is limited to public pages.
 - **Third-party target for `first-k6script.js`** — SauceDemo is not infrastructure we control; be considerate with VU counts and run frequency, and expect this target to be less stable/representative for CI use than `test.k6.io`.
-- **No response-body assertions** — a `200` with an empty or malformed body would still pass; only status code is validated today.
-- **Report overwrite risk** — see Section 8; results from successive local runs are not preserved automatically.
-- **Single-region execution** — all runs originate from wherever k6 is executed (local machine or CI runner); no multi-region/geo-distributed load is modeled.
+- **No response-body assertions** A `200` with an empty or malformed body would still pass; only status code is validated today.
+- **Report overwrite risk**  Seee Section 8; results from successive local runs are not preserved automatically.
+- **Single-region execution**  All runs originate from wherever k6 is executed (local machine or CI runner); no multi-region/geo-distributed load is modeled.
 
 ## 11. Future Improvements
 
